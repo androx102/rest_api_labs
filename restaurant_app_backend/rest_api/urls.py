@@ -19,7 +19,7 @@ urlpatterns = [
         name="menu",
     ),
     path(
-        "menu/<str:uuid_>",
+        "menu/<str:pk>",
         views.MenuItems.as_view(),
         name="menu_uuid",
     ),
@@ -29,7 +29,7 @@ urlpatterns = [
         name="order",
     ),
     path(
-        "orders/<str:uuid_>",
+        "orders/<str:pk>",
         views.Orders.as_view(),
         name="order",
     ),

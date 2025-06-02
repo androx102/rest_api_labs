@@ -14,7 +14,6 @@ class MenuItem(models.Model):
         ('side', 'Side Dish'),
     ]
     
-    menu_item_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
@@ -43,10 +42,23 @@ class Order(models.Model):
     delivery_address = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
-    total_amount = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
+    total_amount = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True
+    )
     
     def __str__(self):
         return f"Order #{self.id} - {self.customer_name} ({self.status})"
+    
+    def calculate_total(self):
+        """Calculate total amount from order items"""
+        total = sum(item.subtotal for item in self.items.all())
+        self.total_amount = total
+        self.save()
+        return total
 
 
 class OrderItem(models.Model):
@@ -54,7 +66,13 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
-    subtotal = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)])
+    subtotal = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True
+    )
     
     def __str__(self):
         return f"{self.quantity} x {self.menu_item.name}"
