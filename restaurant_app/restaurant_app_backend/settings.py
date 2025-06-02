@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "rest_framework.authtoken",
-    #"dj_rest_auth.registration",
 ]
 
 MIDDLEWARE = [
@@ -68,16 +67,24 @@ ROOT_URLCONF = "restaurant_app_backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "frontend" / "dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
         },
     },
+]
+
+STATIC_URL = "/static/"
+
+
+STATICFILES_DIRS = [
+    BASE_DIR / "frontend" / "dist",
 ]
 
 WSGI_APPLICATION = "restaurant_app_backend.wsgi.application"
@@ -128,7 +135,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -156,3 +163,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
 }
+
+
+
+
