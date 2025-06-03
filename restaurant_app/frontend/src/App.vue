@@ -42,8 +42,41 @@
       <router-view/>
     </section>
 
-    <footer class="footer">
-      <p class="has-text-centered">Copyright Mikolaj Paluchowski(c) 2025</p>
+    <footer class="footer bg-grey-darken-3">
+      <div class="content">
+        <div class="columns">
+          <div class="column">
+            <h3 class="has-text-white mb-4">Connect With Us</h3>
+            <div class="social-links">
+              <a href="https://facebook.com" target="_blank" class="mr-4">
+                <v-icon color="white">mdi-facebook</v-icon>
+              </a>
+              <a href="https://instagram.com" target="_blank" class="mr-4">
+                <v-icon color="white">mdi-instagram</v-icon>
+              </a>
+              <a href="https://twitter.com" target="_blank">
+                <v-icon color="white">mdi-twitter</v-icon>
+              </a>
+            </div>
+          </div>
+          
+          <div class="column">
+            <h3 class="has-text-white mb-4">Opening Hours</h3>
+            <p class="has-text-white">Monday - Friday: 11:00 - 22:00</p>
+            <p class="has-text-white">Saturday - Sunday: 12:00 - 23:00</p>
+          </div>
+          
+          <div class="column">
+            <h3 class="has-text-white mb-4">Contact</h3>
+            <p class="has-text-white">Phone: +48 123 456 789</p>
+            <p class="has-text-white">Email: contact@giuseppe.com</p>
+          </div>
+        </div>
+        
+        <div class="divider my-4"></div>
+        
+        <p class="has-text-centered has-text-white">Copyright Mikolaj Paluchowski(c) 2025</p>
+      </div>
     </footer>
   </div>
 </template>
@@ -72,18 +105,20 @@ export default {
     }
   },
   mounted() {
-    this.cart = this.$store.state.cart
+    // Check if store cart exists before assigning
+    if (this.$store.state.cart) {
+      this.cart = this.$store.state.cart
+    }
   },
   computed: {
-      cartTotalLength() {
-          let totalLength = 0
-
-          for (let i = 0; i < this.cart.items.length; i++) {
-              totalLength += this.cart.items[i].quantity
-          }
-
-          return totalLength
+    cartTotalLength() {
+      // Add null checks
+      if (!this.cart || !this.cart.items) {
+        return 0
       }
+      
+      return this.cart.items.reduce((total, item) => total + item.quantity, 0)
+    }
   }
 }
 </script>
@@ -138,6 +173,36 @@ nav {
     &.router-link-exact-active {
       color: #42b983;
     }
+  }
+}
+
+.footer {
+  padding: 3rem 1.5rem;
+  background-color: #363636;
+  
+  .social-links {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    a {
+      transition: opacity 0.3s ease;
+      
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+  }
+  
+  .divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 2rem 0;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
   }
 }
 </style>

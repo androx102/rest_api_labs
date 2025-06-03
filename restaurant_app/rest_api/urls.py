@@ -14,7 +14,7 @@ urlpatterns = [
     #path("auth/verify", views.verify_auth, name="verify"),
     
     path(
-        "menu",
+        "menu/",
         views.MenuItems.as_view(),
         name="menu",
     ),
@@ -24,7 +24,7 @@ urlpatterns = [
         name="menu_uuid",
     ),
     path(
-        "orders",
+        "orders/",
         views.Orders.as_view(),
         name="order",
     ),

@@ -27,12 +27,39 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["backendmain", "localhost", "127.0.0.1", "0.0.0.0"]
 
+
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # If running locally
-    "http://frontend_main:3000",  # If using Docker
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
+
 
 # Application definition
 
@@ -44,7 +71,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-
+    "corsheaders",
     "rest_api.apps.RestApiConfig",
     "rest_framework",
     "rest_framework_simplejwt",
@@ -53,6 +80,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
