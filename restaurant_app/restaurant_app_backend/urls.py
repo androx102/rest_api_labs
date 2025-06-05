@@ -22,7 +22,7 @@ from django.urls import re_path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include("rest_api.urls")),
+    path("api/v1/", include("rest_api.urls")),
     re_path(r'^(?!admin|api).*$', TemplateView.as_view(template_name='index.html')),
 ]
 

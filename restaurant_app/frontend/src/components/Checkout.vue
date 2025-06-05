@@ -153,7 +153,7 @@ const submitOrder = async () => {
     console.log('Sending order data:', orderData)
 
     // Send order to backend
-    const response = await axios.post('http://127.0.0.1:8000/api/orders/', orderData, {
+    const response = await axios.post('http://127.0.0.1:8000/api/v1/orders/', orderData, {
       headers: {
         'Content-Type': 'application/json'
       }

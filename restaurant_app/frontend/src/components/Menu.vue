@@ -76,7 +76,7 @@ const loading = ref(true)
 const error = ref(null)
 
 // Add API base URL
-const API_URL = 'http://127.0.0.1:8000/api'
+const API_URL = 'http://127.0.0.1:8000/api/v1'
 
 // Fetch menu items from backend
 const fetchMenuItems = async () => {

@@ -93,7 +93,7 @@ const trackOrder = async () => {
   try {
     // Add email as query parameter
     const response = await axios.get(
-      `http://127.0.0.1:8000/api/orders/${orderNumber.value}?email=${encodeURIComponent(email.value)}`
+      `http://127.0.0.1:8000/api/v1/orders/${orderNumber.value}?email=${encodeURIComponent(email.value)}`
     )
     orderDetails.value = response.data
     console.log('Order details:', response.data)  // Debug log
