@@ -44,12 +44,19 @@
 
 <script setup>
 import { ref } from 'vue'
-import Menu from '@/components/Menu.vue'  // Add this import
+import Menu from '@/components/Menu.vue'
 
 const searchQuery = ref('')
 const selectedCategory = ref('all')
 const priceSort = ref('default')
-const categories = ['all', 'pizza', 'pasta', 'salads', 'beverages']
+const categories = [
+  'all',
+  'pizza',
+  'pasta',
+  'salad',
+  'drink'
+] // Updated to match backend CATEGORY_CHOICES
+
 const sortOptions = [
   { title: 'Default', value: 'default' },
   { title: 'Price: Low to High', value: 'asc' },

@@ -26,7 +26,7 @@
             <div class="buttons">
               <router-link to="/cart" class="button is-success">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
-                <span>Cart ({{ cartTotalLength }})</span>
+                <span>Cart ({{ cartCount }})</span>
               </router-link>
             </div>
           </div>
@@ -83,14 +83,20 @@
 
 <script>
 import axios from 'axios'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
 
 export default {
+  setup() {
+    const store = useStore()
+    
+    return {
+      cartCount: computed(() => store.getters.cartItemCount)
+    }
+  },
   data() {
     return {
-      showMobileMenu: false,
-      cart: {
-        items: []
-      }
+      showMobileMenu: false
     }
   },
   beforeCreate() {
@@ -99,25 +105,9 @@ export default {
     const token = this.$store.state.token
 
     if (token) {
-        axios.defaults.headers.common['Authorization'] = "Token " + token
+      axios.defaults.headers.common['Authorization'] = "Token " + token
     } else {
-        axios.defaults.headers.common['Authorization'] = ""
-    }
-  },
-  mounted() {
-    // Check if store cart exists before assigning
-    if (this.$store.state.cart) {
-      this.cart = this.$store.state.cart
-    }
-  },
-  computed: {
-    cartTotalLength() {
-      // Add null checks
-      if (!this.cart || !this.cart.items) {
-        return 0
-      }
-      
-      return this.cart.items.reduce((total, item) => total + item.quantity, 0)
+      axios.defaults.headers.common['Authorization'] = ""
     }
   }
 }

@@ -9,9 +9,7 @@ class MenuItem(models.Model):
         ('pizza', 'Pizza'),
         ('pasta', 'Pasta'),
         ('salad', 'Salad'),
-        ('dessert', 'Dessert'),
-        ('drink', 'Drink'),
-        ('side', 'Side Dish'),
+        ('drink', 'Drink')
     ]
     
     name = models.CharField(max_length=100)

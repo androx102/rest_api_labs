@@ -75,22 +75,28 @@ class Orders(APIView):
 
     #DONE 
     def get(self, request, pk=None):
-        email = request.data.get('email')
-        print(email)
-
+        # Change from request.data to request.query_params
+        email = request.query_params.get('email')
+        print(f"Email from query params: {email}")  # Debug log
+        
         if pk:
             if not request.user.is_staff and not email:
                 return Response({'error': 'Only staff can see this order'}, status=status.HTTP_403_FORBIDDEN)
 
             if email:
                 #uuid_ + email -> return details of single order 
-                order = get_object_or_404(Order, pk=pk, customer_email=email)
-        
+                try:
+                    order = get_object_or_404(Order, order_number_uuid=pk, customer_email=email)
+                except Order.DoesNotExist:
+                    return Response(
+                        {'error': 'Order not found with provided email'}, 
+                        status=status.HTTP_404_NOT_FOUND
+                    )
             else:
                 #uuid_ -> return details of single order 
                 order = get_object_or_404(Order, pk=pk)
 
-            serializer = FullOrderSerializer(order)  # Changed to FullOrderSerializer
+            serializer = FullOrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         else:

@@ -49,7 +49,10 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useStore } from 'vuex'  // Add this import
 import axios from 'axios'
+
+const store = useStore()  // Initialize store
 
 const props = defineProps({
   searchQuery: {
@@ -101,7 +104,7 @@ const filteredItems = computed(() => {
 
   // Apply category filter matching backend CATEGORY_CHOICES
   if (props.selectedCategory !== 'all') {
-    items = items.filter(item => item.category.toLowerCase() === props.selectedCategory)
+    items = items.filter(item => item.category === props.selectedCategory) // Removed toLowerCase()
   }
 
   // Apply search filter
@@ -125,10 +128,9 @@ const filteredItems = computed(() => {
   return items
 })
 
-// Add to cart function
+// Update addToCart function to use Vuex
 const addToCart = (item) => {
-  // TODO: Implement cart functionality
-  console.log('Adding to cart:', item)
+  store.dispatch('addToCart', item)
 }
 
 // Watch for prop changes
