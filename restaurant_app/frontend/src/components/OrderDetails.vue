@@ -57,9 +57,9 @@
                 {{ item.menu_item_name }} x {{ item.quantity }}
               </v-list-item-title>
               <v-list-item-subtitle>
-                Price: {{ item.menu_item_price }} PLN
+                Price: {{ formatPrice(item.menu_item_price) }}
                 <br>
-                Subtotal: {{ item.subtotal }} PLN
+                Subtotal: {{ formatPrice(item.subtotal) }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
@@ -67,7 +67,7 @@
           <v-divider class="my-4"></v-divider>
           
           <div class="d-flex justify-end">
-            <p class="text-h6">Total: {{ order.total_amount }} PLN</p>
+            <p class="text-h6">Total: {{ formatPrice(order.total_amount) }}</p>
           </div>
         </v-col>
       </v-row>
@@ -87,13 +87,24 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useStore } from 'vuex'
 
+const store = useStore()
 const props = defineProps({
   order: {
     type: Object,
     required: true
   }
 })
+
+// Add currency-related computed properties
+const currentCurrency = computed(() => store.getters.currentCurrency)
+const currencySymbol = computed(() => store.getters.currencySymbol)
+
+// Add price formatting function
+const formatPrice = (price) => {
+  return store.getters.formatPrice(price)
+}
 
 const getStatusColor = computed(() => {
   switch (props.order.status) {

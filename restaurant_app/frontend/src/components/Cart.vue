@@ -19,8 +19,8 @@
             </v-list-item-title>
 
             <v-list-item-subtitle>
-              Price: {{ item.price }} PLN x {{ item.quantity }}
-              = {{ (item.price * item.quantity).toFixed(2) }} PLN
+              Price: {{ formatPrice(item.price) }} x {{ item.quantity }}
+              = {{ formatPrice(item.price * item.quantity) }}
             </v-list-item-subtitle>
 
             <template v-slot:append>
@@ -56,7 +56,7 @@
 
         <v-card-text class="text-right">
           <p class="text-h6">
-            Total: {{ cartTotal }} PLN
+            Total: {{ formatPrice(cartTotal) }}
           </p>
         </v-card-text>
       </v-card>
@@ -90,6 +90,12 @@ const store = useStore()
 
 const cartItems = computed(() => store.state.cart.items)
 const cartTotal = computed(() => store.getters.cartTotal)
+const currentCurrency = computed(() => store.getters.currentCurrency)
+const currencySymbol = computed(() => store.getters.currencySymbol)
+
+const formatPrice = (price) => {
+  return store.getters.formatPrice(price)
+}
 
 const updateQuantity = (id, quantity) => {
   if (quantity < 1) return

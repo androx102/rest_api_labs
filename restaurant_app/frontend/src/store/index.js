@@ -6,7 +6,16 @@ export default createStore({
       items: []
     },
     isLoading: false,
-    token: ''
+    token: '',
+    currency: {
+      current: 'PLN',
+      rate: null,
+      lastUpdate: null,
+      symbol: {
+        PLN: 'zł',
+        USD: '$'
+      }
+    }
   },
   mutations: {
     initializeStore(state) {
@@ -44,6 +53,18 @@ export default createStore({
     clearCart(state) {
       state.cart.items = []
       localStorage.setItem('cart', JSON.stringify(state.cart))
+    },
+    setCurrency(state, currency) {
+      state.currency.current = currency
+      localStorage.setItem('currency', currency)
+    },
+    setExchangeRate(state, rate) {
+      state.currency.rate = rate
+      state.currency.lastUpdate = new Date().toISOString()
+      localStorage.setItem('exchangeRate', JSON.stringify({
+        rate: rate,
+        lastUpdate: state.currency.lastUpdate
+      }))
     }
   },
   actions: {
@@ -55,18 +76,57 @@ export default createStore({
     },
     removeFromCart({ commit }, id) {
       commit('removeFromCart', id)
+    },
+    async fetchExchangeRate({ commit }) {
+      try {
+        const response = await fetch('https://api.nbp.pl/api/exchangerates/rates/c/usd/today/')
+        const data = await response.json()
+        commit('setExchangeRate', data.rates[0].ask)
+      } catch (error) {
+        console.error('Failed to fetch exchange rate:', error)
+        commit('setExchangeRate', 4.0) // Fallback rate
+      }
+    },
+    switchCurrency({ commit, state }) {
+      const newCurrency = state.currency.current === 'PLN' ? 'USD' : 'PLN'
+      commit('setCurrency', newCurrency)
     }
   },
   getters: {
     cartTotal: state => {
-      return state.cart.items.reduce((total, item) => {
+      const total = state.cart.items.reduce((total, item) => {
         return total + (item.price * item.quantity)
       }, 0)
+      return total
     },
     cartItemCount: state => {
       return state.cart.items.reduce((count, item) => {
         return count + item.quantity
       }, 0)
+    },
+    currentCurrency: state => state.currency.current,
+    currencySymbol: state => state.currency.symbol[state.currency.current],
+    convertPrice: state => price => {
+      // If currency is PLN, return original price
+      if (state.currency.current === 'PLN') {
+        return price
+      }
+      // Only convert to USD if we have an exchange rate
+      if (state.currency.current === 'USD' && state.currency.rate) {
+        return (parseFloat(price) / state.currency.rate).toFixed(2)
+      }
+      return price
+    },
+    formatPrice: (state, getters) => price => {
+      const convertedPrice = getters.convertPrice(price)
+      const symbol = state.currency.symbol[state.currency.current]
+      
+      // Format based on currency
+      if (state.currency.current === 'PLN') {
+        return `${convertedPrice} ${symbol}`
+      } else {
+        return `${symbol}${convertedPrice}`
+      }
     }
   }
 })

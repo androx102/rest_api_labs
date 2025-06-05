@@ -13,14 +13,20 @@
       </div>
 
       <div class="navbar-menu" id="navbar-menu" v-bind:class="{'is-active': showMobileMenu }">
-        <div class="navbar-start">
-
-        </div>
-
         <div class="navbar-end">
           <router-link to="/" class="navbar-item">Home</router-link>
           <router-link to="/menu" class="navbar-item">Menu</router-link>
           <router-link to="/order" class="navbar-item">Track order</router-link>
+
+          <!-- Add Currency Switch Button -->
+          <div class="navbar-item">
+            <button 
+              class="button is-small is-light"
+              @click="toggleCurrency"
+            >
+              {{ currentCurrency }} ({{ currencySymbol }})
+            </button>
+          </div>
 
           <div class="navbar-item">
             <div class="buttons">
@@ -81,36 +87,47 @@
   </div>
 </template>
 
-<script>
-import axios from 'axios'
+<script setup>
+import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
-import { computed } from 'vue'
 
-export default {
-  setup() {
-    const store = useStore()
-    
-    return {
-      cartCount: computed(() => store.getters.cartItemCount)
-    }
-  },
-  data() {
-    return {
-      showMobileMenu: false
-    }
-  },
-  beforeCreate() {
-    this.$store.commit('initializeStore')
+const store = useStore()
+const showMobileMenu = ref(false)
+const currentCurrency = computed(() => store.getters.currentCurrency)
+const currencySymbol = computed(() => store.getters.currencySymbol)
+const cartCount = computed(() => store.getters.cartItemCount)
 
-    const token = this.$store.state.token
-
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = "Token " + token
-    } else {
-      axios.defaults.headers.common['Authorization'] = ""
-    }
-  }
+const toggleCurrency = () => {
+  store.dispatch('switchCurrency')
 }
+
+onMounted(async () => {
+  // Initialize store
+  store.commit('initializeStore')
+
+  // Try to get cached exchange rate
+  const savedRate = localStorage.getItem('exchangeRate')
+  if (savedRate) {
+    const { rate, lastUpdate } = JSON.parse(savedRate)
+    const lastUpdateDate = new Date(lastUpdate)
+    const now = new Date()
+    
+    // Refresh rate if last update was more than 1 hour ago
+    if (now - lastUpdateDate > 3600000) {
+      await store.dispatch('fetchExchangeRate')
+    } else {
+      store.commit('setExchangeRate', rate)
+    }
+  } else {
+    await store.dispatch('fetchExchangeRate')
+  }
+
+  // Initialize currency preference
+  const savedCurrency = localStorage.getItem('currency')
+  if (savedCurrency) {
+    store.commit('setCurrency', savedCurrency)
+  }
+})
 </script>
 
 <style lang="scss">
@@ -194,5 +211,10 @@ nav {
     font-size: 1.2rem;
     font-weight: bold;
   }
+}
+
+.button.is-small {
+  margin: 0 0.5rem;
+  min-width: 60px;
 }
 </style>

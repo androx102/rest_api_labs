@@ -26,7 +26,9 @@
             <v-card-title class="text-h5">{{ item.name }}</v-card-title>
             <v-card-text>
               <p class="text-body-1">{{ item.description }}</p>
-              <p class="text-h6 mt-2">Price: ${{ item.price }}</p>
+              <p class="text-h6 mt-2">
+                Price: {{ formatPrice(item.price) }}
+              </p>
               <v-chip color="primary" class="mt-2">{{ item.category }}</v-chip>
             </v-card-text>
             <v-card-actions>
@@ -49,10 +51,10 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { useStore } from 'vuex'  // Add this import
+import { useStore } from 'vuex'
 import axios from 'axios'
 
-const store = useStore()  // Initialize store
+const store = useStore()
 
 const props = defineProps({
   searchQuery: {
@@ -98,6 +100,16 @@ const fetchMenuItems = async () => {
   }
 }
 
+// Add computed properties for currency handling
+const currentCurrency = computed(() => store.getters.currentCurrency)
+const currencySymbol = computed(() => store.getters.currencySymbol)
+
+// Add price formatting function with proper currency handling
+const formatPrice = (price) => {
+  const formattedPrice = store.getters.formatPrice(price)
+  return formattedPrice
+}
+
 // Filter and sort menu items based on backend model fields
 const filteredItems = computed(() => {
   let items = [...menuItems.value]
@@ -116,11 +128,11 @@ const filteredItems = computed(() => {
     )
   }
 
-  // Apply price sorting using decimal values
+  // Apply price sorting using properly converted prices
   if (props.priceSort !== 'default') {
     items.sort((a, b) => {
-      const priceA = parseFloat(a.price)
-      const priceB = parseFloat(b.price)
+      const priceA = parseFloat(store.getters.convertPrice(a.price))
+      const priceB = parseFloat(store.getters.convertPrice(b.price))
       return props.priceSort === 'asc' ? priceA - priceB : priceB - priceA
     })
   }
@@ -128,9 +140,14 @@ const filteredItems = computed(() => {
   return items
 })
 
-// Update addToCart function to use Vuex
+// Update addToCart to handle prices correctly
 const addToCart = (item) => {
-  store.dispatch('addToCart', item)
+  const itemWithPrice = {
+    ...item,
+    originalPrice: item.price,
+    currentPrice: store.getters.convertPrice(item.price)
+  }
+  store.dispatch('addToCart', itemWithPrice)
 }
 
 // Watch for prop changes

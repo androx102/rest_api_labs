@@ -11,13 +11,13 @@
                 {{ item.name }} x {{ item.quantity }}
               </v-list-item-title>
               <v-list-item-subtitle>
-                {{ (item.price * item.quantity).toFixed(2) }} PLN
+                {{ formatPrice(item.price * item.quantity) }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
           <v-divider></v-divider>
           <v-card-text class="text-right">
-            <p class="text-h6">Total: {{ cartTotal }} PLN</p>
+            <p class="text-h6">Total: {{ formatPrice(cartTotal) }}</p>
           </v-card-text>
         </v-card>
       </v-col>
@@ -114,6 +114,7 @@ const orderNumber = ref('')
 
 const cartItems = computed(() => store.state.cart.items)
 const cartTotal = computed(() => store.getters.cartTotal)
+const currentCurrency = computed(() => store.getters.currentCurrency)
 
 const formData = ref({
   customer_name: '',
@@ -122,25 +123,30 @@ const formData = ref({
   delivery_address: ''
 })
 
+const formatPrice = (price) => {
+  return store.getters.formatPrice(price)
+}
+
 const submitOrder = async () => {
   if (!form.value.validate()) return
 
   isSubmitting.value = true
   
   try {
-    // Prepare order items
+    // Prepare order items with original PLN prices
     const items = cartItems.value.map(item => ({
       menu_item: item.id,
-      quantity: item.quantity
+      quantity: item.quantity,
+      price: item.originalPrice || item.price // Use original PLN price if available
     }))
 
-    // Prepare order data - don't stringify items array
     const orderData = {
       customer_name: formData.value.customer_name,
       customer_email: formData.value.customer_email,
       customer_phone: formData.value.customer_phone,
       delivery_address: formData.value.delivery_address,
-      items: items  // Send as array, not stringified
+      items: items,
+      currency: currentCurrency.value // Send current currency info to backend
     }
 
     // Log the request data for debugging
