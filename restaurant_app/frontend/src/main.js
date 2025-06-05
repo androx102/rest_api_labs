@@ -19,7 +19,10 @@ const vuetify = createVuetify({
   },
 })
 
+import axiosInstance from './utils/axios'
 
+const app = createApp(App)
 
+app.config.globalProperties.$axios = axiosInstance
 
-createApp(App).use(store).use(router).use(vuetify).mount('#app')
+app.use(store).use(router).use(vuetify).mount('#app')

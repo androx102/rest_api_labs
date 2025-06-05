@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404, get_list_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 import json
 from .serializers import *
@@ -18,7 +19,7 @@ class MenuItems(APIView):
     def get(self, request, pk=None):
         category = request.query_params.get('category')
 
-        if pk:
+        if pk:        
             item = get_object_or_404(MenuItem,pk=pk)
             serializer = MenuItemSerializer(item)
         else:
@@ -71,11 +72,8 @@ class MenuItems(APIView):
 
 
 class Orders(APIView):
-    #permission_classes = [IsAdminOrReadOnly]
-
     #DONE 
     def get(self, request, pk=None):
-        # Change from request.data to request.query_params
         email = request.query_params.get('email')
         print(f"Email from query params: {email}")  # Debug log
         
@@ -205,3 +203,42 @@ class Orders(APIView):
             
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class UserEndpoint(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user_ = get_object_or_404(UserObject, id=request.user.id)
+        serializer = UserSerializer(user_)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        user_ = get_object_or_404(UserObject, id=request.user.id)
+        user_.is_active = False
+        user_.save()
+        return Response({"message": "User deactivated"}, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        print(request)
+        user_instance = get_object_or_404(UserObject, id=request.user.id)
+        serializer = UserSerializer(user_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class RegisterEndpoint(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer_ = UserSerializer(data=request.data)
+        if serializer_.is_valid():
+            serializer_.save()
+            return Response(
+                {"OK": "User created sucesfully"}, status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(serializer_.errors, status=status.HTTP_400_BAD_REQUEST)

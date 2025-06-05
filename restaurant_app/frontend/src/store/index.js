@@ -1,4 +1,6 @@
 import { createStore } from 'vuex'
+import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export default createStore({
   state: {
@@ -6,6 +8,7 @@ export default createStore({
       items: []
     },
     isLoading: false,
+    isAuthenticated: false,
     token: '',
     currency: {
       current: 'PLN',
@@ -18,11 +21,36 @@ export default createStore({
     }
   },
   mutations: {
+    setIsAuthenticated(state, value) {
+      state.isAuthenticated = value
+    },
+    setToken(state, token) {
+      state.token = token
+      state.isAuthenticated = !!token
+      localStorage.setItem('token', token)
+      // Set axios default header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    },
+    removeToken(state) {
+      state.token = ''
+      state.isAuthenticated = false
+      localStorage.removeItem('token')
+      // Remove axios default header
+      delete axios.defaults.headers.common['Authorization']
+    },
     initializeStore(state) {
       if (localStorage.getItem('cart')) {
         state.cart = JSON.parse(localStorage.getItem('cart'))
       } else {
         localStorage.setItem('cart', JSON.stringify(state.cart))
+      }
+      const accessToken = Cookies.get('access_token')
+      if (accessToken) {
+        state.isAuthenticated = true
+        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+      } else {
+        state.isAuthenticated = false
+        delete axios.defaults.headers.common['Authorization']
       }
     },
     addToCart(state, item) {
@@ -65,6 +93,16 @@ export default createStore({
         rate: rate,
         lastUpdate: state.currency.lastUpdate
       }))
+    },
+    setAuth(state, isAuthenticated) {
+      state.isAuthenticated = isAuthenticated
+    },
+    
+    clearAuth(state) {
+      state.isAuthenticated = false
+      Cookies.remove('access_token')
+      Cookies.remove('refresh_token')
+      delete axios.defaults.headers.common['Authorization']
     }
   },
   actions: {
@@ -90,6 +128,29 @@ export default createStore({
     switchCurrency({ commit, state }) {
       const newCurrency = state.currency.current === 'PLN' ? 'USD' : 'PLN'
       commit('setCurrency', newCurrency)
+    },
+    async login({ commit }, credentials) {
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/api/v1/auth/login/', credentials)
+        const { access, refresh } = response.data
+        
+        // Store tokens in cookies
+        Cookies.set('access_token', access, { secure: true, sameSite: 'strict' })
+        Cookies.set('refresh_token', refresh, { secure: true, sameSite: 'strict' })
+        
+        // Set auth header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access}`
+        
+        commit('setAuth', true)
+        return true
+      } catch (error) {
+        console.error('Login failed:', error)
+        return false
+      }
+    },
+
+    logout({ commit }) {
+      commit('clearAuth')
     }
   },
   getters: {
@@ -127,6 +188,7 @@ export default createStore({
       } else {
         return `${symbol}${convertedPrice}`
       }
-    }
+    },
+    isAuthenticated: state => state.isAuthenticated
   }
 })

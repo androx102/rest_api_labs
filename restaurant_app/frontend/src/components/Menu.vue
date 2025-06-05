@@ -52,7 +52,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useStore } from 'vuex'
-import axios from 'axios'
+import axios from '@/utils/axios'
 
 const store = useStore()
 

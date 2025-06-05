@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MenuItem, Order, OrderItem
+from .models import MenuItem, Order, OrderItem, UserObject
 
 
 class MenuItemSerializer(serializers.ModelSerializer):
@@ -48,3 +48,34 @@ class FullOrderSerializer(serializers.ModelSerializer):
         fields = ['order_number_uuid', 'customer_name', 'customer_email', 
                  'customer_phone', 'delivery_address', 'status', 'created_at', 
                  'total_amount', 'items']
+        
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserObject
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "is_verified",
+            "is_active",
+            "delivery_address",
+            "name",
+            "phone_number"
+        ]
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "id": {"read_only": True},
+            "is_verified": {"read_only": True},
+            "is_active": {"read_only": True},
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop("password", None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance

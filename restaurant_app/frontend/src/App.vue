@@ -16,9 +16,16 @@
         <div class="navbar-end">
           <router-link to="/" class="navbar-item">Home</router-link>
           <router-link to="/menu" class="navbar-item">Menu</router-link>
-          <router-link to="/order" class="navbar-item">Track order</router-link>
+          
+          <!-- Conditional Order Navigation -->
+          <template v-if="isAuthenticated">
+            <router-link to="/my-orders" class="navbar-item">My Orders</router-link>
+          </template>
+          <template v-else>
+            <router-link to="/order" class="navbar-item">Track Order</router-link>
+          </template>
 
-          <!-- Add Currency Switch Button -->
+          <!-- Currency Switch Button -->
           <div class="navbar-item">
             <button 
               class="button is-small is-light"
@@ -28,12 +35,54 @@
             </button>
           </div>
 
-          <div class="navbar-item">
+        <div class="navbar-item">
             <div class="buttons">
               <router-link to="/cart" class="button is-success">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
                 <span>Cart ({{ cartCount }})</span>
               </router-link>
+
+              <!-- Replace the existing my-account button with this dropdown -->
+              <template v-if="$store.state.isAuthenticated">
+                <v-menu>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      class="button is-light"
+                      v-bind="props"
+                    >
+                      My Account
+                      <v-icon right>mdi-chevron-down</v-icon>
+                    </v-btn>
+                  </template>
+
+                  <v-list>
+                    <v-list-item
+                      to="/my-account"
+                      link
+                    >
+                      <v-list-item-title>
+                        <v-icon left>mdi-account</v-icon>
+                        My Data
+                      </v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item
+                      @click="handleLogout"
+                    >
+                      <v-list-item-title>
+                        <v-icon left>mdi-logout</v-icon>
+                        Logout
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </template>
+
+              <template v-else>
+                <router-link to="/login" class="button is-light">Log in</router-link>
+              </template>
+
+
             </div>
           </div>
         </div>
@@ -90,29 +139,35 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 const store = useStore()
+const router = useRouter()
+
 const showMobileMenu = ref(false)
 const currentCurrency = computed(() => store.getters.currentCurrency)
 const currencySymbol = computed(() => store.getters.currencySymbol)
 const cartCount = computed(() => store.getters.cartItemCount)
+const isAuthenticated = computed(() => store.getters.isAuthenticated)
 
 const toggleCurrency = () => {
   store.dispatch('switchCurrency')
 }
 
+const handleLogout = () => {
+  store.dispatch('logout')
+  router.push('/login')
+}
+
 onMounted(async () => {
-  // Initialize store
   store.commit('initializeStore')
 
-  // Try to get cached exchange rate
   const savedRate = localStorage.getItem('exchangeRate')
   if (savedRate) {
     const { rate, lastUpdate } = JSON.parse(savedRate)
     const lastUpdateDate = new Date(lastUpdate)
     const now = new Date()
     
-    // Refresh rate if last update was more than 1 hour ago
     if (now - lastUpdateDate > 3600000) {
       await store.dispatch('fetchExchangeRate')
     } else {
@@ -216,5 +271,19 @@ nav {
 .button.is-small {
   margin: 0 0.5rem;
   min-width: 60px;
+}
+</style>
+
+<style scoped>
+.v-menu {
+  display: inline-block;
+}
+
+.v-list-item {
+  min-width: 150px;
+}
+
+.v-icon {
+  margin-right: 8px;
 }
 </style>
