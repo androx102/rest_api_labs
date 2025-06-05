@@ -24,55 +24,55 @@
 
       <!-- Customer Details Form -->
       <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>Customer Details</v-card-title>
-          <v-card-text>
-            <v-form ref="form" v-model="isFormValid">
+        <v-form
+          ref="form"
+          v-model="isFormValid"
+          @submit.prevent="submitOrder"
+        >
+          <v-card>
+            <v-card-title>Customer Details</v-card-title>
+            <v-card-text>
               <v-text-field
-                v-model="formData.customer_name"
-                label="Full Name"
-                :rules="[(v) => !!v || 'Name is required']"
-                required
+                v-model="formData.customer_email"
+                label="Name"
+                :rules="[rules.required]"
+                clearable
               ></v-text-field>
 
               <v-text-field
                 v-model="formData.customer_email"
                 label="Email"
-                type="email"
-                :rules="[
-                  (v) => !!v || 'Email is required',
-                  (v) => /.+@.+\..+/.test(v) || 'Email must be valid'
-                ]"
-                required
+                :rules="[rules.required, rules.email]"
               ></v-text-field>
 
               <v-text-field
                 v-model="formData.customer_phone"
                 label="Phone Number"
-                :rules="[(v) => !!v || 'Phone number is required']"
-                required
+                :rules="[rules.required, rules.phone]"
+                clearable
               ></v-text-field>
 
               <v-textarea
                 v-model="formData.delivery_address"
-                label="Delivery Address"
-                :rules="[(v) => !!v || 'Delivery address is required']"
-                required
+                label="Delivery Address*"
+                :rules="[rules.required]"
+                rows="3"
+                auto-grow
               ></v-textarea>
+            </v-card-text>
+          </v-card>
 
-              <v-btn
-                color="primary"
-                block
-                size="large"
-                :loading="isSubmitting"
-                :disabled="!isFormValid || isSubmitting"
-                @click="submitOrder"
-              >
-                Place Order
-              </v-btn>
-            </v-form>
-          </v-card-text>
-        </v-card>
+          <v-btn
+            color="primary"
+            block
+            size="large"
+            type="submit"
+            :loading="isSubmitting"
+            :disabled="!isFormValid || isSubmitting"
+          >
+            Place Order
+          </v-btn>
+        </v-form>
       </v-col>
     </v-row>
 
@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import axios from '@/utils/axios'
@@ -115,6 +115,7 @@ const orderNumber = ref('')
 const cartItems = computed(() => store.state.cart.items)
 const cartTotal = computed(() => store.getters.cartTotal)
 const currentCurrency = computed(() => store.getters.currentCurrency)
+const isAuthenticated = computed(() => store.getters.isAuthenticated)
 
 const formData = ref({
   customer_name: '',
@@ -123,12 +124,19 @@ const formData = ref({
   delivery_address: ''
 })
 
+const rules = {
+  required: v => !!v || 'This field is required',
+  email: v => /.+@.+\..+/.test(v) || 'Email must be valid',
+  phone: v => !v || /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(v) || 'Please enter a valid phone number'
+}
+
 const formatPrice = (price) => {
   return store.getters.formatPrice(price)
 }
 
 const submitOrder = async () => {
-  if (!form.value.validate()) return
+  const { valid } = await form.value.validate()
+  if (!valid) return
 
   isSubmitting.value = true
   
@@ -188,4 +196,21 @@ const submitOrder = async () => {
     isSubmitting.value = false
   }
 }
+
+// Fetch and fill user data if authenticated
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    try {
+      const response = await axios.get('/user/')
+      formData.value = {
+        ...formData.value,
+        customer_email: response.data.email || '',
+        customer_phone: response.data.phone_number || '',
+        delivery_address: response.data.delivery_address || ''
+      }
+    } catch (err) {
+      console.error('Failed to fetch user data:', err)
+    }
+  }
+})
 </script>
