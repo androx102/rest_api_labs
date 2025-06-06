@@ -72,37 +72,54 @@ class MenuItems(APIView):
 
 
 class Orders(APIView):
-    #DONE 
     def get(self, request, pk=None):
-        email = request.query_params.get('email')
-        print(f"Email from query params: {email}")  # Debug log
-        
-        if pk:
-            if not request.user.is_staff and not email:
-                return Response({'error': 'Only staff can see this order'}, status=status.HTTP_403_FORBIDDEN)
-
-            if email:
-                #uuid_ + email -> return details of single order 
+        # Case 1: Unauthenticated user with order lookup
+        if not request.user.is_authenticated:
+            email = request.query_params.get('email')
+            if pk and email:
                 try:
                     order = get_object_or_404(Order, order_number_uuid=pk, customer_email=email)
+                    serializer = FullOrderSerializer(order)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 except Order.DoesNotExist:
                     return Response(
                         {'error': 'Order not found with provided email'}, 
                         status=status.HTTP_404_NOT_FOUND
                     )
-            else:
-                #uuid_ -> return details of single order 
-                order = get_object_or_404(Order, pk=pk)
+            return Response(
+                {'error': 'Please provide both order number and email'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-            serializer = FullOrderSerializer(order)
+        # Case 2: Authenticated admin user
+        if request.user.is_staff:
+            if pk:
+                order = get_object_or_404(Order, pk=pk)
+                serializer = FullOrderSerializer(order)
+            else:
+                orders = Order.objects.all()
+                serializer = FullOrderSerializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
+        # Case 3: Authenticated regular user
+        if pk:
+            try:
+                order = get_object_or_404(
+                    Order, 
+                    order_number_uuid=pk, 
+                    customer_email=request.user.email
+                )
+                serializer = FullOrderSerializer(order)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Order.DoesNotExist:
+                return Response(
+                    {'error': 'Order not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
         else:
-            if not request.user.is_staff:
-                return Response({'error': 'Only staff can view all orders'}, status=status.HTTP_403_FORBIDDEN)
-            
-            orders = Order.objects.all()
-            serializer = OrderSerializer(orders, many=True)  # Changed to FullOrderSerializer
+            # Return all orders for the logged-in user
+            orders = Order.objects.filter(customer_email=request.user.email)
+            serializer = FullOrderSerializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
