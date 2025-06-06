@@ -33,7 +33,7 @@
             <v-card-title>Customer Details</v-card-title>
             <v-card-text>
               <v-text-field
-                v-model="formData.customer_email"
+                v-model="formData.customer_name"
                 label="Name"
                 :rules="[rules.required]"
                 clearable
@@ -204,6 +204,7 @@ onMounted(async () => {
       const response = await axios.get('/user/')
       formData.value = {
         ...formData.value,
+        customer_name: response.data.name || '',
         customer_email: response.data.email || '',
         customer_phone: response.data.phone_number || '',
         delivery_address: response.data.delivery_address || ''

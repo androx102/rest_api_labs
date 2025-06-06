@@ -29,9 +29,12 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+
+
+
 class UserObject(AbstractUser):
+    username = None
     user_uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, null=False)
-    tokens = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=True)
     email = models.EmailField(max_length=254, verbose_name="email address", unique=True)
     name = models.TextField(null=True,blank=True)
@@ -39,13 +42,13 @@ class UserObject(AbstractUser):
     phone_number = models.CharField(null=True,blank=True,max_length=20)    
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
-    
+   
     objects = UserManager()
-    
-    def save(self, *args, **kwargs):
-        self.username = self.email
-        super().save(*args, **kwargs)
-    
+   
+   #def save(self, *args, **kwargs):
+   #    self.username = self.email
+   #    super().save(*args, **kwargs)
+   
     def __str__(self):
         return self.email
 

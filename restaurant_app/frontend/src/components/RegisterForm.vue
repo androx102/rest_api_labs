@@ -4,8 +4,8 @@
       <v-card-title class="text-h5 mb-4">Register</v-card-title>
       
       <v-text-field
-        v-model="formData.username"
-        label="Username"
+        v-model="formData.name"
+        label="Name"
         :rules="[rules.required, rules.username]"
         required
       ></v-text-field>
@@ -78,7 +78,7 @@ const error = ref('')
 const isLoading = ref(false)
 
 const formData = ref({
-  username: '',
+  name: '',
   email: '',
   password: '',
   password2: ''
@@ -100,22 +100,24 @@ const handleSubmit = async () => {
 
   try {
     const response = await axios.post('http://127.0.0.1:8000/api/v1/auth/register/', {
-      username: formData.value.username,
+      name: formData.value.name,
       email: formData.value.email,
       password: formData.value.password,
     })
     
-    // If registration successful, log the user in
-    const loginResponse = await axios.post('http://127.0.0.1:8000/api/v1/auth/login/', {
+
+
+    const success = await store.dispatch('login', {
       email: formData.value.email,
       password: formData.value.password
     })
-    
-    // Store the token and update auth state
-    store.dispatch('login', loginResponse.data.token)
-    
-    // Redirect to home page
-    router.push('/')
+
+    if (success) {
+      router.push('/')
+    } else {
+      error.value = 'Login failed'
+    }
+
   } catch (err) {
     error.value = Object.values(err.response?.data || {})[0]?.[0] || 'Registration failed. Please try again.'
   } finally {

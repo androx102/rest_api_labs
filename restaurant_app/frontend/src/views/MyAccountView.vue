@@ -33,8 +33,7 @@
               <v-text-field
                 v-model="userData.name"
                 label="Name"
-                disabled
-                readonly
+                clearable
               ></v-text-field>
 
               <!-- Phone Number Field -->
