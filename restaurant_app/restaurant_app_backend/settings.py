@@ -208,6 +208,18 @@ PAYU_OAUTH_URL = 'https://secure.snd.payu.com/pl/standard/user/oauth/authorize'
 FRONT_BASE_URL = 'http://localhost:8080'
 PAYU_API_URL = 'https://secure.snd.payu.com/api/v2_1'  # Sandbox
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+}
+
 
 
 

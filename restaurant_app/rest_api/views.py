@@ -8,9 +8,9 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 import requests
-import traceback
 
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .models import Order
 from .serializers import *
 from .permissions import IsAdminOrReadOnly
@@ -21,8 +21,23 @@ from .utils import get_oauth_token, get_payu_order_status
 
 class MenuItems(APIView):
     permission_classes = [IsAdminOrReadOnly]
-
-    #DONE
+    """
+    API endpoint for managing menu items
+    """
+    
+    @swagger_auto_schema(
+        operation_description="Get list of menu items",
+        manual_parameters=[
+            openapi.Parameter(
+                'category',
+                openapi.IN_QUERY,
+                description="Filter by category",
+                type=openapi.TYPE_STRING,
+                required=False
+            )
+        ],
+        responses={200: MenuItemSerializer(many=True)}
+    )
     def get(self, request, pk=None):
         category = request.query_params.get('category')
 
@@ -39,7 +54,11 @@ class MenuItems(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
         
 
-    #DONE
+    @swagger_auto_schema(
+        operation_description="Create a new menu item",
+        request_body=MenuItemSerializer,
+        responses={201: MenuItemSerializer()}
+    )
     def post(self, request, pk=None):
         serializer = MenuItemSerializer(data=request.data)
         if serializer.is_valid():
@@ -80,6 +99,34 @@ class MenuItems(APIView):
 
 
 class Orders(APIView):
+    """
+    API endpoint for managing orders
+    """
+    
+    @swagger_auto_schema(
+        operation_description="Get order details",
+        manual_parameters=[
+            openapi.Parameter(
+                'email',
+                openapi.IN_QUERY,
+                description="Customer email for order verification",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'check_payment',
+                openapi.IN_QUERY,
+                description="Check payment status",
+                type=openapi.TYPE_BOOLEAN,
+                required=False
+            )
+        ],
+        responses={
+            200: FullOrderSerializer(),
+            400: 'Bad Request',
+            404: 'Not Found'
+        }
+        )
     def get(self, request, pk=None):
         check_payment = request.query_params.get('check_payment', False)
         
