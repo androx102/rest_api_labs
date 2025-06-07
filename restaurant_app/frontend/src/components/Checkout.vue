@@ -127,23 +127,9 @@ const submitOrder = async () => {
       currency: currentCurrency.value
     })
 
-    // Step 2: Initialize PayU payment
-    const paymentResponse = await axios.post('/payment/initialize/', {
-      orderNumber: orderResponse.data.order_number_uuid,
-      amount: orderResponse.data.total_amount,
-      currency: currentCurrency.value,
-      description: `Order ${orderResponse.data.order_number_uuid}`,
-      customer: {
-        email: formData.value.customer_email,
-        phone: formData.value.customer_phone,
-        firstName: formData.value.customer_name,
-        language: 'pl'
-      }
-    })
-
-    // Step 3: Clear cart and redirect to PayU
+    // Step 2: Clear cart and redirect to PayU
     store.commit('clearCart')
-    window.location.href = paymentResponse.data.redirectUri
+    window.location.href = orderResponse.data.redirectUri
 
   } catch (error) {
     console.error('Order error:', error)

@@ -202,7 +202,82 @@ class Orders(APIView):
             
             
             order.calculate_total()
-            return Response(FullOrderSerializer(order).data, status=status.HTTP_201_CREATED)  # Changed to FullOrderSerializer
+
+            
+            
+            try:
+                # Get OAuth token
+                access_token = get_oauth_token()
+
+                # Prepare PayU request data
+                payu_data = {
+                    "extOrderId": str(order.order_number_uuid),
+                    "merchantPosId": settings.PAYU_POS_ID,
+                    "description": f"Order {order.order_number_uuid}",
+                    "currencyCode": request.data.get('currency', 'PLN'),
+                    "totalAmount": str(int(float(order.total_amount) * 100)),
+                    "buyer": {
+                        "email": order.customer_email,
+                        "phone": order.customer_phone,
+                        "firstName": order.customer_name,
+                        "language": "pl"
+                    },
+                    "products": [
+                        {
+                            "name": item.menu_item.name,
+                            "unitPrice": str(int(float(item.menu_item.price) * 100)),
+                            "quantity": item.quantity
+                        } for item in order.items.all()
+                    ],
+                #"notifyUrl": f"{settings.API_BASE_URL}/api/v1/payment/notify/",
+                    "customerIp": request.META.get('REMOTE_ADDR'),
+                }
+
+                headers = {
+                    'Authorization': f'Bearer {access_token}',
+                    'Content-Type': 'application/json',
+                }
+
+                response = requests.post(
+                    settings.PAYU_ORDER_URL,
+                    json=payu_data,
+                    headers=headers,
+                    allow_redirects=False 
+                )
+
+                response_data = response.json()
+            
+                if response_data.get('status', {}).get('statusCode') == 'SUCCESS':
+                    redirect_uri = response_data.get('redirectUri')
+                    order_id = response_data.get('orderId')
+                
+                    if not redirect_uri:
+                        return Response(
+                            {'error': 'No redirect URL in PayU response'},
+                            status=status.HTTP_502_BAD_GATEWAY
+                        )
+                
+                    return Response({
+                        'redirectUri': redirect_uri,
+                        'orderId': order_id,
+                        'status': 'success'
+                    }, status=status.HTTP_200_OK)
+            
+                else:
+                    error_message = response_data.get('status', {}).get('statusDesc', 'Unknown error')
+                    return Response(
+                        {'error': f'PayU error: {error_message}'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            except Exception as e:
+                return Response(
+                    {'error': str(e)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+
+            #return Response(FullOrderSerializer(order).data, status=status.HTTP_201_CREATED)  # Changed to FullOrderSerializer
         return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
