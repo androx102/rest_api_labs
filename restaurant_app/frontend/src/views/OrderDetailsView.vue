@@ -57,10 +57,10 @@
               <v-card-text>
                 <!-- Order Info -->
                 <div class="mb-4">
-                  <p><strong>Date:</strong> {{ new Date(orderDetails.created_at).toLocaleString() }}</p>
-                  <p><strong>Email:</strong> {{ orderDetails.customer_email }}</p>
-                  <p><strong>Phone:</strong> {{ orderDetails.customer_phone }}</p>
-                  <p><strong>Delivery Address:</strong> {{ orderDetails.delivery_address }}</p>
+                  <p >Date: {{ new Date(orderDetails.created_at).toLocaleString() }}</p>
+                  <p>Email: {{ orderDetails.customer_email }}</p>
+                  <p>Phone: {{ orderDetails.customer_phone }}</p>
+                  <p>Delivery Address:{{ orderDetails.delivery_address }}</p>
                 </div>
 
                 <!-- Order Items -->

@@ -8,12 +8,6 @@
             :key="item.id"
             class="mb-2"
           >
-            <template v-slot:prepend>
-              <v-avatar size="80">
-                <v-img :src="item.image || 'default-pizza.jpg'" cover></v-img>
-              </v-avatar>
-            </template>
-
             <v-list-item-title class="text-h6">
               {{ item.name }}
             </v-list-item-title>

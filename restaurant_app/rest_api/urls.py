@@ -18,7 +18,7 @@ urlpatterns = [
     path("user/", views.UserEndpoint.as_view(), name="user"),
 
     path("menu/",views.MenuItems.as_view(),name="menu"),
-    path("menu/<str:pk>",views.MenuItems.as_view(),name="menu_uuid"),
+    path("menu/<str:pk>",views.MenuItems.as_view(),name="menu_uid"),
     path("orders/",views.Orders.as_view(),name="order"),
-    path("orders/<str:pk>",views.Orders.as_view(),name="order")
+    path("orders/<str:pk>",views.Orders.as_view(),name="order_id")
 ]

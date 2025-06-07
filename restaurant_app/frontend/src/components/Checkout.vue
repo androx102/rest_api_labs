@@ -114,8 +114,6 @@ const submitOrder = async () => {
   isSubmitting.value = true
   
   try {
-
-    // Step 1: Create order
     const orderResponse = await axios.post('/orders/', {
       customer_name: formData.value.customer_name,
       customer_email: formData.value.customer_email,
@@ -128,7 +126,6 @@ const submitOrder = async () => {
       currency: currentCurrency.value,
     })
 
-    // Step 2: Clear cart and redirect to PayU
     store.commit('clearCart')
     window.location.href = orderResponse.data.redirectUri
 
@@ -139,7 +136,6 @@ const submitOrder = async () => {
   }
 }
 
-// Auto-fill form for authenticated users
 onMounted(async () => {
   if (isAuthenticated.value) {
     try {

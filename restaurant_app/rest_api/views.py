@@ -65,11 +65,11 @@ class MenuItems(APIView):
 
 
     #DONE
-    def delete(self, request, uuid_=None):
-        if not uuid_:
+    def delete(self, request, pk=None):
+        if not pk:
             return Response({'error': 'UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        item = get_object_or_404(MenuItem, menu_item_uuid=uuid_)
+        item = get_object_or_404(MenuItem, pk=pk)
         item.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -81,59 +81,55 @@ class MenuItems(APIView):
 
 class Orders(APIView):
     def get(self, request, pk=None):
-        # Check if this is a payment status check
         check_payment = request.query_params.get('check_payment', False)
         
         if check_payment and pk:
             email = request.query_params.get('email')
-            try:
-                # Get the order
-                order = get_object_or_404(Order, order_number_uuid=pk, customer_email=email)
+            
+            order = get_object_or_404(Order, order_number_uuid=pk, customer_email=email)
                 
-                if not order.payu_order_id:
+            if not order.payu_order_id:
                     return Response(
                         {'error': 'No payment information for this order'}, 
                         status=status.HTTP_400_BAD_REQUEST
                     )
                 
-                # Get PayU token
-                access_token = get_oauth_token()
+            if order.payment_status != None:
+                    return Response({
+                        'status': order.status,
+                        'payuStatus': order.payment_status,
+                        'orderNumber': order.order_number_uuid
+                    }, status=status.HTTP_200_OK)
                 
-                # Check PayU order status
-                payu_status = get_payu_order_status(order.payu_order_id, access_token)
-                #print(payu_status)
-                if payu_status:
-                    # Map PayU status to your order status
-                    status_mapping = {
+            access_token = get_oauth_token()
+            payu_status = get_payu_order_status(order.payu_order_id, access_token)
+                
+            if payu_status:
+                status_mapping = {
                         'COMPLETED': 'confirmed',
                         'PENDING': 'pending',
                         'CANCELED': 'canceled',
                         'REJECTED': 'canceled'
                     }
                     
-                    payu_order_status = payu_status.get('orders', [{}])[0].get('status')
-                    new_status = status_mapping.get(payu_order_status)
+                payu_order_status = payu_status.get('orders', [{}])[0].get('status')
+                new_status = status_mapping.get(payu_order_status)
                     
-                    if new_status != order.status:
-                        order.status = new_status
+                if new_status != order.payment_status:
+                        order.payment_status = new_status
                         order.save()
                     
-                    return Response({
+                return Response({
                         'status': order.status,
-                        'payuStatus': payu_order_status,
+                        'payuStatus': order.payment_status,
                         'orderNumber': order.order_number_uuid
                     }, status=status.HTTP_200_OK)
                 
-                return Response(
+            return Response(
                     {'error': 'Could not fetch payment status'}, 
                     status=status.HTTP_502_BAD_GATEWAY
                 )
-                
-            except Exception as e:
-                return Response(
-                    {'error': str(e)}, 
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+
 
         # Case 1: Unauthenticated user with order lookup
         if not request.user.is_authenticated:
@@ -156,7 +152,7 @@ class Orders(APIView):
         # Case 2: Authenticated admin user
         if request.user.is_staff:
             if pk:
-                order = get_object_or_404(Order, pk=pk)
+                order = get_object_or_404(Order, order_number_uuid=pk)
                 serializer = FullOrderSerializer(order)
             else:
                 orders = Order.objects.all()
@@ -165,19 +161,13 @@ class Orders(APIView):
 
         # Case 3: Authenticated regular user
         if pk:
-            try:
-                order = get_object_or_404(
-                    Order, 
-                    order_number_uuid=pk, 
-                    customer_email=request.user.email
-                )
-                serializer = FullOrderSerializer(order)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Order.DoesNotExist:
-                return Response(
-                    {'error': 'Order not found'}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+            order = get_object_or_404(
+                Order, 
+                order_number_uuid=pk, 
+                customer_email=request.user.email
+            )
+            serializer = FullOrderSerializer(order)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             # Return all orders for the logged-in user
             orders = Order.objects.filter(customer_email=request.user.email)

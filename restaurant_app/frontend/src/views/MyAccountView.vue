@@ -159,7 +159,6 @@ const fetchUserData = async () => {
   
   try {
     const response = await axios.get('/user/')
-    // Handle null values from backend
     userData.value = {
       email: response.data.email || '',
       name: response.data.name || '',
@@ -187,6 +186,7 @@ const handleSubmit = async () => {
 
   try {
     await axios.put('/user/', {
+      name: userData.value.name,
       phone_number: userData.value.phone_number,
       delivery_address: userData.value.delivery_address
     })

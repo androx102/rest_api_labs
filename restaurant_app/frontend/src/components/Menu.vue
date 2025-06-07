@@ -50,9 +50,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import axios from '@/utils/axios'
+import config from '@/config'
 
 const store = useStore()
 
@@ -75,51 +76,38 @@ const menuItems = ref([])
 const loading = ref(true)
 const error = ref(null)
 
-// Add API base URL
-const API_URL = 'http://127.0.0.1:8000/api/v1'
 
-// Fetch menu items from backend
 const fetchMenuItems = async () => {
   try {
     console.log('Try to reach backend')
     loading.value = true
-    const response = await axios.get(`${API_URL}/menu/`, {
+    const response = await axios.get(`${config.API_URL}/menu/`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      withCredentials: false  // Changed from true to false
+      withCredentials: false 
     })
-    console.log('API Response:', response.data)
     menuItems.value = Array.isArray(response.data) ? response.data : response.data.results
   } catch (e) {
     error.value = `Error loading menu items: ${e.message}`
-    console.error('API Error:', e.response?.data || e.message)
   } finally {
     loading.value = false
   }
 }
 
-// Add computed properties for currency handling
-const currentCurrency = computed(() => store.getters.currentCurrency)
-const currencySymbol = computed(() => store.getters.currencySymbol)
-
-// Add price formatting function with proper currency handling
 const formatPrice = (price) => {
   const formattedPrice = store.getters.formatPrice(price)
   return formattedPrice
 }
 
-// Filter and sort menu items based on backend model fields
 const filteredItems = computed(() => {
   let items = [...menuItems.value]
 
-  // Apply category filter matching backend CATEGORY_CHOICES
   if (props.selectedCategory !== 'all') {
-    items = items.filter(item => item.category === props.selectedCategory) // Removed toLowerCase()
+    items = items.filter(item => item.category === props.selectedCategory)
   }
 
-  // Apply search filter
   if (props.searchQuery) {
     const query = props.searchQuery.toLowerCase()
     items = items.filter(item => 
@@ -128,7 +116,6 @@ const filteredItems = computed(() => {
     )
   }
 
-  // Apply price sorting using properly converted prices
   if (props.priceSort !== 'default') {
     items.sort((a, b) => {
       const priceA = parseFloat(store.getters.convertPrice(a.price))
@@ -140,7 +127,6 @@ const filteredItems = computed(() => {
   return items
 })
 
-// Update addToCart to handle prices correctly
 const addToCart = (item) => {
   const itemWithPrice = {
     ...item,
@@ -150,19 +136,7 @@ const addToCart = (item) => {
   store.dispatch('addToCart', itemWithPrice)
 }
 
-// Watch for prop changes
-watch([() => props.searchQuery, () => props.selectedCategory, () => props.priceSort], 
-  () => {
-    // Could add debounce for search if needed
-    console.log('Filters changed')
-  }
-)
-
-// Add immediate console log to verify mounting
-onMounted(() => {
-  console.log('Menu component mounted')
-  fetchMenuItems()
-})
+onMounted(() => {fetchMenuItems()})
 </script>
 
 <style scoped>

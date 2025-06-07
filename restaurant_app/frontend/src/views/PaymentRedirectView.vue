@@ -75,7 +75,7 @@ const checkPaymentStatus = async () => {
     const response = await axios.get(
       `/orders/${orderId.value}?check_payment=true&email=${email.value}`
     )
-    paymentStatus.value = response.data.status
+    paymentStatus.value = response.data.payuStatus
   } catch (err) {
     console.error('Payment status check failed:', err)
     error.value = 'Failed to verify payment status'

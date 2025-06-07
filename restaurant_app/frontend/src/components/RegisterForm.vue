@@ -70,6 +70,7 @@ import { ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import axios from '@/utils/axios'
+import config from '@/config'
 
 const store = useStore()
 const router = useRouter()
@@ -99,23 +100,26 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/v1/auth/register/', {
+    const response = await axios.post(`${config.API_URL}/auth/register/`, {
       name: formData.value.name,
       email: formData.value.email,
       password: formData.value.password,
     })
-    
 
+    if (response.status === 201) {
+      const success = await store.dispatch('login', {
+        email: formData.value.email,
+        password: formData.value.password
+      })
 
-    const success = await store.dispatch('login', {
-      email: formData.value.email,
-      password: formData.value.password
-    })
-
-    if (success) {
-      router.push('/')
+      if (success) {
+        router.push('/')
+      } else {
+        error.value = 'Registration successful, but automatic login failed. Please login manually.'
+        router.push('/login')
+      }
     } else {
-      error.value = 'Login failed'
+      error.value = 'Registration failed. Please try again.'
     }
 
   } catch (err) {

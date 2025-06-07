@@ -55,7 +55,7 @@ const categories = [
   'pasta',
   'salad',
   'drink'
-] // Updated to match backend CATEGORY_CHOICES
+] 
 
 const sortOptions = [
   { title: 'Default', value: 'default' },

@@ -119,7 +119,6 @@
 </template>
 
 <script setup>
-// No additional script needed for this component
 </script>
 
 <style scoped>
