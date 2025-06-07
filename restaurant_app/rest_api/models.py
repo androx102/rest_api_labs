@@ -97,6 +97,7 @@ class Order(models.Model):
         null=True,
         blank=True
     )
+    payu_order_id = models.CharField(max_length=100, null=True, blank=True)
     
     def __str__(self):
         return f"Order #{self.id} - {self.customer_name} ({self.status})"

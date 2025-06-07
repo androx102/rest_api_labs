@@ -14,7 +14,7 @@ import traceback
 from .models import Order
 from .serializers import *
 from .permissions import IsAdminOrReadOnly
-from .utils import get_oauth_token
+from .utils import get_oauth_token, get_payu_order_status
 
 
 
@@ -78,8 +78,63 @@ class MenuItems(APIView):
 
 
 
+
 class Orders(APIView):
     def get(self, request, pk=None):
+        # Check if this is a payment status check
+        check_payment = request.query_params.get('check_payment', False)
+        
+        if check_payment and pk:
+            email = request.query_params.get('email')
+            try:
+                # Get the order
+                order = get_object_or_404(Order, order_number_uuid=pk, customer_email=email)
+                
+                if not order.payu_order_id:
+                    return Response(
+                        {'error': 'No payment information for this order'}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Get PayU token
+                access_token = get_oauth_token()
+                
+                # Check PayU order status
+                payu_status = get_payu_order_status(order.payu_order_id, access_token)
+                #print(payu_status)
+                if payu_status:
+                    # Map PayU status to your order status
+                    status_mapping = {
+                        'COMPLETED': 'confirmed',
+                        'PENDING': 'pending',
+                        'CANCELED': 'canceled',
+                        'REJECTED': 'canceled'
+                    }
+                    
+                    payu_order_status = payu_status.get('orders', [{}])[0].get('status')
+                    new_status = status_mapping.get(payu_order_status)
+                    
+                    if new_status != order.status:
+                        order.status = new_status
+                        order.save()
+                    
+                    return Response({
+                        'status': order.status,
+                        'payuStatus': payu_order_status,
+                        'orderNumber': order.order_number_uuid
+                    }, status=status.HTTP_200_OK)
+                
+                return Response(
+                    {'error': 'Could not fetch payment status'}, 
+                    status=status.HTTP_502_BAD_GATEWAY
+                )
+                
+            except Exception as e:
+                return Response(
+                    {'error': str(e)}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
         # Case 1: Unauthenticated user with order lookup
         if not request.user.is_authenticated:
             email = request.query_params.get('email')
@@ -206,6 +261,7 @@ class Orders(APIView):
             
             
             try:
+
                 # Get OAuth token
                 access_token = get_oauth_token()
 
@@ -229,7 +285,8 @@ class Orders(APIView):
                             "quantity": item.quantity
                         } for item in order.items.all()
                     ],
-                #"notifyUrl": f"{settings.API_BASE_URL}/api/v1/payment/notify/",
+               
+                    "continueUrl": f"{settings.FRONT_BASE_URL}/payment-redirect/{order.order_number_uuid}?email={order.customer_email}",
                     "customerIp": request.META.get('REMOTE_ADDR'),
                 }
 
@@ -250,13 +307,17 @@ class Orders(APIView):
                 if response_data.get('status', {}).get('statusCode') == 'SUCCESS':
                     redirect_uri = response_data.get('redirectUri')
                     order_id = response_data.get('orderId')
-                
+
                     if not redirect_uri:
                         return Response(
                             {'error': 'No redirect URL in PayU response'},
                             status=status.HTTP_502_BAD_GATEWAY
                         )
-                
+
+                    # Save PayU order ID
+                    order.payu_order_id = order_id
+                    order.save()
+
                     return Response({
                         'redirectUri': redirect_uri,
                         'orderId': order_id,
@@ -341,88 +402,3 @@ class RegisterEndpoint(APIView):
             )
         else:
             return Response(serializer_.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PaymentInitView(APIView):
-
-    def post(self, request):
-        order_number = request.data.get('orderNumber')
-        if not order_number:
-            return Response(
-                {'error': 'Order number is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Get order from database
-        order = get_object_or_404(Order, order_number_uuid=order_number)
-
-        try:
-            # Get OAuth token
-            access_token = get_oauth_token()
-
-            # Prepare PayU request data
-            payu_data = {
-                "extOrderId": str(order.order_number_uuid),
-                "merchantPosId": settings.PAYU_POS_ID,
-                "description": f"Order {order.order_number_uuid}",
-                "currencyCode": request.data.get('currency', 'PLN'),
-                "totalAmount": str(int(float(order.total_amount) * 100)),
-                "buyer": {
-                    "email": order.customer_email,
-                    "phone": order.customer_phone,
-                    "firstName": order.customer_name,
-                    "language": "pl"
-                },
-                "products": [
-                    {
-                        "name": item.menu_item.name,
-                        "unitPrice": str(int(float(item.menu_item.price) * 100)),
-                        "quantity": item.quantity
-                    } for item in order.items.all()
-                ],
-                #"notifyUrl": f"{settings.API_BASE_URL}/api/v1/payment/notify/",
-                "customerIp": request.META.get('REMOTE_ADDR'),
-            }
-
-            headers = {
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json',
-            }
-
-            response = requests.post(
-                settings.PAYU_ORDER_URL,
-                json=payu_data,
-                headers=headers,
-                allow_redirects=False 
-            )
-
-            response_data = response.json()
-            
-            if response_data.get('status', {}).get('statusCode') == 'SUCCESS':
-                redirect_uri = response_data.get('redirectUri')
-                order_id = response_data.get('orderId')
-                
-                if not redirect_uri:
-                    return Response(
-                        {'error': 'No redirect URL in PayU response'},
-                        status=status.HTTP_502_BAD_GATEWAY
-                    )
-                
-                return Response({
-                    'redirectUri': redirect_uri,
-                    'orderId': order_id,
-                    'status': 'success'
-                }, status=status.HTTP_200_OK)
-            
-            else:
-                error_message = response_data.get('status', {}).get('statusDesc', 'Unknown error')
-                return Response(
-                    {'error': f'PayU error: {error_message}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )

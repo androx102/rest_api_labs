@@ -114,6 +114,7 @@ const submitOrder = async () => {
   isSubmitting.value = true
   
   try {
+
     // Step 1: Create order
     const orderResponse = await axios.post('/orders/', {
       customer_name: formData.value.customer_name,
@@ -124,7 +125,7 @@ const submitOrder = async () => {
         menu_item: item.id,
         quantity: item.quantity
       })),
-      currency: currentCurrency.value
+      currency: currentCurrency.value,
     })
 
     // Step 2: Clear cart and redirect to PayU

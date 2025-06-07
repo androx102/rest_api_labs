@@ -193,10 +193,9 @@ SIMPLE_JWT = {
 }
 
 # PayU Configuration
-PAYU_POS_ID = '491521'  # Get from PayU merchant panel
+PAYU_POS_ID = '491521'
 
-PAYU_SECOND_KEY = 'd2033056982ac5fecf2295341c16d54d'  # Get from PayU merchant panel
-PAYU_AUTH_KEY = '586334a614c4e5e6c7090b69692d1dad'  # Get from PayU merchant panel
+#PAYU_SECOND_KEY = 'd2033056982ac5fecf2295341c16d54d'
 PAYU_ORDER_URL = 'https://secure.snd.payu.com/api/v2_1/orders' 
 
 # PayU oAuth
@@ -205,8 +204,10 @@ PAYU_CLIENT_SECRET = '586334a614c4e5e6c7090b69692d1dad'
 PAYU_OAUTH_URL = 'https://secure.snd.payu.com/pl/standard/user/oauth/authorize'
 
 
-# Your API base URL
-API_BASE_URL = 'http://your-domain.com'  # Use your actual domain
+FRONT_BASE_URL = 'http://localhost:8080'
+PAYU_API_URL = 'https://secure.snd.payu.com/api/v2_1'  # Sandbox
+
+
 
 
 

@@ -18,7 +18,7 @@ const routes = [
       //this is for "my orders" page
     path: '/order',
     name: 'order',
-    component: () => import('../views/OrderView.vue')
+    component: () => import('../views/OrderDetailsView.vue')
   },
     {
     path: '/cart',
@@ -30,11 +30,13 @@ const routes = [
     name: 'checkout',
     component: () => import('../views/CheckoutView.vue')
   },
+
+/*
   {
   path: '/order',
   name: 'order',
-  component: () => import('../views/OrderView.vue')
-},
+  component: () => import('../views/OrderDetailsView.vue')
+},*/
 {
     path: '/login',
     name: 'login',
@@ -52,21 +54,31 @@ const routes = [
   meta: { requiresAuth: true }
 },
 {
-  path: '/my-orders',
-  name: 'my-orders',
-  component: () => import('../views/MyOrdersView.vue'),
-  meta: { requiresAuth: true }
-},
-/*{
-  path: '/payment/success',
-  name: 'payment-success',
-  component: () => import('../views/PaymentSuccessView.vue')
-},
-{
-  path: '/payment/error',
-  name: 'payment-error',
-  component: () => import('../views/PaymentErrorView.vue')
-}*/
+    path: '/track-order',
+    name: 'track-order',
+    component: () => import('../views/TrackOrderView.vue')
+  },
+  {
+    path: '/my-orders',
+    name: 'my-orders',
+    component: () => import('../views/MyOrdersView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/order/:id',
+    name: 'order-details',
+    component: () => import('../views/OrderDetailsView.vue'),
+    props: true
+  },
+  {
+    path: '/payment-redirect/:id',
+    name: 'payment-redirect',
+    component: () => import('../views/PaymentRedirectView.vue'),
+    props: (route) => ({
+      id: route.params.id,
+      email: route.query.email
+    })
+  }
 ]
 
 const router = createRouter({

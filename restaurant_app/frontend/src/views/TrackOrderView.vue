@@ -1,5 +1,5 @@
 <template>
-  <div class="order">
+  <div class="track-order">
     <v-container>
       <v-row>
         <v-col cols="12">
@@ -7,17 +7,16 @@
         </v-col>
       </v-row>
 
-      <!-- Order Lookup Form -->
-      <v-row v-if="!orderDetails">
+      <v-row>
         <v-col cols="12" md="6" class="mx-auto">
           <v-card>
             <v-card-title>Find Your Order</v-card-title>
             <v-card-text>
-              <v-form ref="form" v-model="isFormValid">
+              <v-form ref="form" v-model="isFormValid" @submit.prevent="trackOrder">
                 <v-text-field
                   v-model="orderNumber"
                   label="Order Number"
-                  :rules="[(v) => !!v || 'Order number is required']"
+                  :rules="[rules.required]"
                   required
                 ></v-text-field>
 
@@ -25,19 +24,16 @@
                   v-model="email"
                   label="Email"
                   type="email"
-                  :rules="[
-                    (v) => !!v || 'Email is required',
-                    (v) => /.+@.+\..+/.test(v) || 'Email must be valid'
-                  ]"
+                  :rules="[rules.required, rules.email]"
                   required
                 ></v-text-field>
 
                 <v-btn
                   color="primary"
                   block
+                  type="submit"
                   :loading="isLoading"
                   :disabled="!isFormValid || isLoading"
-                  @click="trackOrder"
                 >
                   Track Order
                 </v-btn>
@@ -47,17 +43,6 @@
         </v-col>
       </v-row>
 
-      <!-- Order Details -->
-      <v-row v-else>
-        <v-col cols="12">
-          <OrderDetails 
-            :order="orderDetails"
-            @back="orderDetails = null"
-          />
-        </v-col>
-      </v-row>
-
-      <!-- Error Alert -->
       <v-snackbar
         v-model="showError"
         color="error"
@@ -70,46 +55,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/utils/axios'
-import OrderDetails from '@/components/OrderDetails.vue'
 
-const route = useRoute()
+const router = useRouter()
 const form = ref(null)
 const isFormValid = ref(false)
 const isLoading = ref(false)
 const showError = ref(false)
 const errorMessage = ref('')
-const orderDetails = ref(null)
 
-const orderNumber = ref(route.query.order || '')
-const email = ref(route.query.email || '')
+const orderNumber = ref('')
+const email = ref('')
+
+const rules = {
+  required: v => !!v || 'This field is required',
+  email: v => /.+@.+\..+/.test(v) || 'Email must be valid'
+}
 
 const trackOrder = async () => {
   if (!form.value.validate()) return
   
   isLoading.value = true
   try {
-    // Add email as query parameter
-    const response = await axios.get(
-      `http://127.0.0.1:8000/api/v1/orders/${orderNumber.value}?email=${encodeURIComponent(email.value)}`
-    )
-    orderDetails.value = response.data
-    console.log('Order details:', response.data)  // Debug log
+    const response = await axios.get(`/orders/${orderNumber.value}?email=${encodeURIComponent(email.value)}`)
+    router.push({
+      name: 'order-details',
+      params: { id: orderNumber.value },
+      query: { email: email.value }
+    })
   } catch (error) {
-    console.error('Track order error:', error.response?.data)
     errorMessage.value = error.response?.data?.error || 'Failed to find order'
     showError.value = true
   } finally {
     isLoading.value = false
   }
 }
-
-// Auto-track if order number and email are in URL
-onMounted(() => {
-  if (orderNumber.value && email.value) {
-    trackOrder()
-  }
-})
 </script>

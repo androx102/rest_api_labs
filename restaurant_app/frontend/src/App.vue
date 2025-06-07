@@ -22,7 +22,7 @@
             <router-link to="/my-orders" class="navbar-item">My Orders</router-link>
           </template>
           <template v-else>
-            <router-link to="/order" class="navbar-item">Track Order</router-link>
+            <router-link to="/track-order" class="navbar-item">Track Order</router-link>
           </template>
 
           <!-- Currency Switch Button -->

@@ -41,3 +41,19 @@ def get_oauth_token():
             raise Exception('Failed to obtain PayU OAuth token')
             
         return response.json()['access_token']
+
+
+def get_payu_order_status(payu_order_id, access_token):
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    response = requests.get(
+        f"{settings.PAYU_API_URL}/orders/{payu_order_id}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        return response.json()
+    return None

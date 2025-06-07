@@ -13,62 +13,42 @@
     </v-overlay>
 
     <!-- Orders List -->
-    <v-expansion-panels v-if="orders.length > 0">
-      <v-expansion-panel
+    <v-list v-if="orders.length > 0">
+      <v-list-item
         v-for="order in orders"
         :key="order.order_number_uuid"
+        :value="order"
       >
-        <v-expansion-panel-title>
-          <v-row no-gutters>
-            <v-col cols="4">
-              Order #{{ order.order_number_uuid.slice(0,8) }}
-            </v-col>
-            <v-col cols="4" class="text-caption">
-              {{ new Date(order.created_at).toLocaleString() }}
-            </v-col>
-            <v-col cols="4">
-              <v-chip
-                :color="getStatusColor(order.status)"
-                size="small"
-              >
-                {{ order.status }}
-              </v-chip>
-            </v-col>
-          </v-row>
-        </v-expansion-panel-title>
+        <template v-slot:prepend>
+          <v-chip
+            :color="getStatusColor(order.status)"
+            size="small"
+            class="mr-4"
+          >
+            {{ order.status }}
+          </v-chip>
+        </template>
 
-        <v-expansion-panel-text>
-          <!-- Order Details -->
-          <v-list>
-            <v-list-item v-for="item in order.items" :key="item.id">
-              <v-list-item-title>
-                {{ item.menu_item_name }} x {{ item.quantity }}
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                {{ formatPrice(item.menu_item_price * item.quantity) }}
-              </v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
+        <v-list-item-title>
+          Order #{{ order.order_number_uuid.slice(0,8) }}
+        </v-list-item-title>
 
-          <v-divider class="my-3"></v-divider>
+        <v-list-item-subtitle>
+          {{ new Date(order.created_at).toLocaleString() }} - 
+          Total: {{ formatPrice(order.total_amount) }}
+        </v-list-item-subtitle>
 
-          <!-- Order Total -->
-          <div class="d-flex justify-end">
-            <p class="text-h6">
-              Total: {{ formatPrice(order.total_amount) }}
-            </p>
-          </div>
-
-          <!-- Delivery Info -->
-          <v-card class="mt-4" variant="outlined">
-            <v-card-text>
-              <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
-              <p><strong>Phone:</strong> {{ order.customer_phone }}</p>
-            </v-card-text>
-          </v-card>
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-    </v-expansion-panels>
+        <template v-slot:append>
+          <v-btn
+            color="primary"
+            variant="text"
+            :to="{ name: 'order-details', params: { id: order.order_number_uuid }}"
+          >
+            View Details
+          </v-btn>
+        </template>
+      </v-list-item>
+    </v-list>
 
     <!-- No Orders Message -->
     <v-card v-else-if="!isLoading" class="text-center pa-4">
@@ -89,8 +69,10 @@
 import { ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import axios from '@/utils/axios'
+import { useRouter } from 'vue-router'
 
 const store = useStore()
+const router = useRouter()
 const orders = ref([])
 const isLoading = ref(true)
 const error = ref('')

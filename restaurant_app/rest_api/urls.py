@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from .views import PaymentInitView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,  
     TokenRefreshView,
@@ -21,6 +20,5 @@ urlpatterns = [
     path("menu/",views.MenuItems.as_view(),name="menu"),
     path("menu/<str:pk>",views.MenuItems.as_view(),name="menu_uuid"),
     path("orders/",views.Orders.as_view(),name="order"),
-    path("orders/<str:pk>",views.Orders.as_view(),name="order"),
-    path('payment/initialize/', PaymentInitView.as_view(), name='payment-init'),
+    path("orders/<str:pk>",views.Orders.as_view(),name="order")
 ]
