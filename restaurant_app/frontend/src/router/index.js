@@ -56,7 +56,17 @@ const routes = [
   name: 'my-orders',
   component: () => import('../views/MyOrdersView.vue'),
   meta: { requiresAuth: true }
-}
+},
+/*{
+  path: '/payment/success',
+  name: 'payment-success',
+  component: () => import('../views/PaymentSuccessView.vue')
+},
+{
+  path: '/payment/error',
+  name: 'payment-error',
+  component: () => import('../views/PaymentErrorView.vue')
+}*/
 ]
 
 const router = createRouter({

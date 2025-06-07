@@ -1,6 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from django.conf import settings
+from base64 import b64encode
+import requests
 import traceback
 
 RED = "\033[31m"
@@ -19,3 +21,23 @@ def custom_exception_handler(exc, context):
     if response is None:
         return Response({"error": "An unexpected error occurred"}, status=500)
     return response
+
+
+
+def get_oauth_token():        
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        response = requests.post(
+            settings.PAYU_OAUTH_URL,
+            headers=headers,
+            data={
+                'grant_type': 'client_credentials',
+                'client_id':settings.PAYU_CLIENT_ID, 
+                'client_secret': settings.PAYU_CLIENT_SECRET }
+        )
+        if response.status_code != 200:
+            raise Exception('Failed to obtain PayU OAuth token')
+            
+        return response.json()['access_token']
