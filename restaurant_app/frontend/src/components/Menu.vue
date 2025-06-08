@@ -1,7 +1,6 @@
 <template>
   <div class="menu-list">
     <v-container>
-      <!-- Add loading and error states -->
       <v-row v-if="loading">
         <v-col cols="12" class="text-center">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
@@ -79,7 +78,6 @@ const error = ref(null)
 
 const fetchMenuItems = async () => {
   try {
-    console.log('Try to reach backend')
     loading.value = true
     const response = await axios.get(`${config.API_URL}/menu/`, {
       headers: {

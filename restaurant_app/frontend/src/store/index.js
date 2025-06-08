@@ -28,14 +28,12 @@ export default createStore({
       state.token = token
       state.isAuthenticated = !!token
       localStorage.setItem('token', token)
-      // Set axios default header
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
     removeToken(state) {
       state.token = ''
       state.isAuthenticated = false
       localStorage.removeItem('token')
-      // Remove axios default header
       delete axios.defaults.headers.common['Authorization']
     },
     initializeStore(state) {
@@ -122,7 +120,7 @@ export default createStore({
         commit('setExchangeRate', data.rates[0].ask)
       } catch (error) {
         console.error('Failed to fetch exchange rate:', error)
-        commit('setExchangeRate', 4.0) // Fallback rate
+        commit('setExchangeRate', 4.0) 
       }
     },
     switchCurrency({ commit, state }) {
@@ -133,12 +131,9 @@ export default createStore({
       try {
         const response = await axios.post('http://127.0.0.1:8000/api/v1/auth/login/', credentials)
         const { access, refresh } = response.data
-        
-        // Store tokens in cookies
         Cookies.set('access_token', access, { secure: true, sameSite: 'strict' })
         Cookies.set('refresh_token', refresh, { secure: true, sameSite: 'strict' })
-        
-        // Set auth header
+  
         axios.defaults.headers.common['Authorization'] = `Bearer ${access}`
         
         commit('setAuth', true)
@@ -168,11 +163,9 @@ export default createStore({
     currentCurrency: state => state.currency.current,
     currencySymbol: state => state.currency.symbol[state.currency.current],
     convertPrice: state => price => {
-      // If currency is PLN, return original price
       if (state.currency.current === 'PLN') {
         return price
       }
-      // Only convert to USD if we have an exchange rate
       if (state.currency.current === 'USD' && state.currency.rate) {
         return (parseFloat(price) / state.currency.rate).toFixed(2)
       }
@@ -181,8 +174,6 @@ export default createStore({
     formatPrice: (state, getters) => price => {
       const convertedPrice = getters.convertPrice(price)
       const symbol = state.currency.symbol[state.currency.current]
-      
-      // Format based on currency
       if (state.currency.current === 'PLN') {
         return `${convertedPrice} ${symbol}`
       } else {

@@ -17,7 +17,7 @@
           <router-link to="/" class="navbar-item">Home</router-link>
           <router-link to="/menu" class="navbar-item">Menu</router-link>
           
-          <!-- Conditional Order Navigation -->
+          
           <template v-if="isAuthenticated">
             <router-link to="/my-orders" class="navbar-item">My Orders</router-link>
           </template>
@@ -25,7 +25,7 @@
             <router-link to="/track-order" class="navbar-item">Track Order</router-link>
           </template>
 
-          <!-- Currency Switch Button -->
+          
           <div class="navbar-item">
             <button 
               class="button is-small is-light"
@@ -42,7 +42,7 @@
                 <span>Cart ({{ cartCount }})</span>
               </router-link>
 
-              <!-- Replace the existing my-account button with this dropdown -->
+              
               <template v-if="$store.state.isAuthenticated">
                 <v-menu>
                   <template v-slot:activator="{ props }">
@@ -177,7 +177,7 @@ onMounted(async () => {
     await store.dispatch('fetchExchangeRate')
   }
 
-  // Initialize currency preference
+  
   const savedCurrency = localStorage.getItem('currency')
   if (savedCurrency) {
     store.commit('setCurrency', savedCurrency)

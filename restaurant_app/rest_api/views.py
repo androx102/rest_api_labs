@@ -27,28 +27,16 @@ class MenuItems(APIView):
     
     @swagger_auto_schema(
         operation_description="Get list of menu items",
-        manual_parameters=[
-            openapi.Parameter(
-                'category',
-                openapi.IN_QUERY,
-                description="Filter by category",
-                type=openapi.TYPE_STRING,
-                required=False
-            )
-        ],
+        request_body=MenuItemSerializer,
         responses={200: MenuItemSerializer(many=True)}
     )
     def get(self, request, pk=None):
-        category = request.query_params.get('category')
 
         if pk:        
             item = get_object_or_404(MenuItem,pk=pk)
             serializer = MenuItemSerializer(item)
-        else:
-            if category:
-                items = get_list_or_404(MenuItem, category__iexact=category)
-            else:
-                items = get_list_or_404(MenuItem)
+        else:                    
+            items = get_list_or_404(MenuItem)
             serializer = MenuItemSerializer(items, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -68,7 +56,6 @@ class MenuItems(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    #DONE
     def put(self, request, pk=None):
         if not pk:
             return Response({'error': 'UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -83,7 +70,6 @@ class MenuItems(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    #DONE
     def delete(self, request, pk=None):
         if not pk:
             return Response({'error': 'UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -216,14 +202,11 @@ class Orders(APIView):
             serializer = FullOrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            # Return all orders for the logged-in user
             orders = Order.objects.filter(customer_email=request.user.email)
             serializer = FullOrderSerializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    #TODO:
-    # - change serializer for user
     def put(self, request, pk=None):
         email = request.data.get('email')
 
@@ -234,12 +217,10 @@ class Orders(APIView):
             return Response({'error': 'Only staff can change this order'}, status=status.HTTP_403_FORBIDDEN)
 
         if email:
-            #TODO: add serializer with only adress changable
             order = get_object_or_404(Order, pk=pk, customer_email=email)
             serializer = OrderUserSerializer(order, data=request.data, partial=True)
 
         else:
-            #uuid_ without email -> del order by id / admin
             order = get_object_or_404(Order, pk=pk)
             serializer = OrderSerializer(order, data=request.data, partial=True)
             
@@ -249,8 +230,6 @@ class Orders(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #TODO:
-    # - add serialization of items, based on UUID's of menu items (fornt sends menuItem_uuids in body)
     def post(self, request, pk=None):
         order_data = request.data.copy()
         items_buffor = order_data.pop('items', [])
@@ -278,7 +257,6 @@ class Orders(APIView):
         if order_serializer.is_valid():
             order = order_serializer.save()
             
-            # Process order items
             for item_data in order_items:
                 order_item = {
                     'order': order.id,
@@ -298,11 +276,8 @@ class Orders(APIView):
             
             
             try:
-
-                # Get OAuth token
                 access_token = get_oauth_token()
 
-                # Prepare PayU request data
                 payu_data = {
                     "extOrderId": str(order.order_number_uuid),
                     "merchantPosId": settings.PAYU_POS_ID,
@@ -351,7 +326,7 @@ class Orders(APIView):
                             status=status.HTTP_502_BAD_GATEWAY
                         )
 
-                    # Save PayU order ID
+                    
                     order.payu_order_id = order_id
                     order.save()
 
@@ -374,13 +349,10 @@ class Orders(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-
-            #return Response(FullOrderSerializer(order).data, status=status.HTTP_201_CREATED)  # Changed to FullOrderSerializer
         return Response(order_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-    #DONE
     def delete(self, request, pk=None):
         email = request.data.get('email')
         
@@ -391,11 +363,9 @@ class Orders(APIView):
             return Response({'error': 'Only staff can del this order'}, status=status.HTTP_403_FORBIDDEN)
         
         if email:
-            #uuid_ + email -> del order by id  and email/ user
             order = get_object_or_404(Order, pk=pk, customer_email=email)
         
         else:
-            #uuid_ without email -> del order by id / admin
             order = get_object_or_404(Order, pk=pk)
             
         order.delete()

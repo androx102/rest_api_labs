@@ -15,7 +15,6 @@ const routes = [
     component: () => import('../views/MenuView.vue')
   },
     {
-      //this is for "my orders" page
     path: '/order',
     name: 'order',
     component: () => import('../views/OrderDetailsView.vue')
@@ -30,13 +29,6 @@ const routes = [
     name: 'checkout',
     component: () => import('../views/CheckoutView.vue')
   },
-
-/*
-  {
-  path: '/order',
-  name: 'order',
-  component: () => import('../views/OrderDetailsView.vue')
-},*/
 {
     path: '/login',
     name: 'login',
@@ -82,7 +74,6 @@ const routes = [
 ]
 
 const router = createRouter({
-  //history: createWebHistory(process.env.BASE_URL),
   history: createWebHistory('/'),
   routes
 })

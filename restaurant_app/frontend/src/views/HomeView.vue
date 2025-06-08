@@ -1,6 +1,5 @@
 <template>
   <v-container fluid class="pa-0">
-    <!-- Hero Section 1 - Welcome -->
     <v-row>
       <v-col cols="12">
         <v-sheet
@@ -13,7 +12,7 @@
       </v-col>
     </v-row>
 
-    <!-- Promotions Section -->
+    
     <v-row class="promotions-section">
       <v-col cols="12">
         <v-sheet class="bg-grey-darken-3 px-6 py-8 text-center" height="300">
@@ -53,7 +52,7 @@
       </v-col>
     </v-row>
 
-    <!-- Hero Section 2 - Contact & Map -->
+    
     <v-row class="contact-section">
       <v-col cols="12" md="6">
         <v-sheet

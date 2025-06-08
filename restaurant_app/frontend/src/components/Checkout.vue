@@ -1,7 +1,6 @@
 <template>
   <v-container>
     <v-row>
-      <!-- Order Summary -->
       <v-col cols="12" md="6">
         <v-card class="mb-4">
           <v-card-title>Order Summary</v-card-title>
@@ -22,7 +21,6 @@
         </v-card>
       </v-col>
 
-      <!-- Customer Details Form -->
       <v-col cols="12" md="6">
         <v-form ref="form" v-model="isFormValid" @submit.prevent="submitOrder">
           <v-card>

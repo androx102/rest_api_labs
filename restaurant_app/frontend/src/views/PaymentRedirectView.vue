@@ -1,7 +1,7 @@
 <template>
   <div class="payment-redirect">
     <v-container>
-      <!-- Loading State -->
+      
       <div v-if="isLoading" class="d-flex justify-center align-center" style="min-height: 400px">
         <v-progress-circular
           indeterminate
@@ -10,7 +10,7 @@
         ></v-progress-circular>
       </div>
 
-      <!-- Error State -->
+      
       <div v-else-if="error" class="d-flex justify-center align-center">
         <v-alert
           type="error"
@@ -20,9 +20,9 @@
         </v-alert>
       </div>
 
-      <!-- Payment Status Components -->
+      
       <PaymentSuccess
-        v-else-if="paymentStatus === 'confirmed'"
+        v-else-if="paymentStatus === 'confirmed'" 
         :order-id="orderId"
         :email="email"
       />
@@ -42,6 +42,8 @@
     </v-container>
   </div>
 </template>
+
+
 
 <script setup>
 import { ref, onMounted } from 'vue'

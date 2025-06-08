@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Loading State -->
     <v-overlay
       :model-value="isLoading"
       class="align-center justify-center"
@@ -12,7 +11,6 @@
       ></v-progress-circular>
     </v-overlay>
 
-    <!-- Orders List -->
     <v-list v-if="orders.length > 0">
       <v-list-item
         v-for="order in orders"
@@ -50,7 +48,6 @@
       </v-list-item>
     </v-list>
 
-    <!-- No Orders Message -->
     <v-card v-else-if="!isLoading" class="text-center pa-4">
       <v-icon size="64" color="grey">mdi-receipt</v-icon>
       <p class="text-h6 mt-4">No orders found</p>

@@ -1,7 +1,6 @@
 <template>
   <div class="menu-view">
     <v-container>
-      <!-- Search and Filter Section -->
       <v-row class="mb-6">
         <v-col cols="12" md="6">
           <v-text-field
@@ -32,7 +31,7 @@
         </v-col>
       </v-row>
 
-      <!-- Menu Component -->
+      
       <Menu 
         :search-query="searchQuery"
         :selected-category="selectedCategory"

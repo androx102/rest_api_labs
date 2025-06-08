@@ -7,7 +7,7 @@
         </v-col>
       </v-row>
 
-      <!-- Loading State -->
+      
       <v-overlay
         :model-value="isLoading"
         class="align-center justify-center"
@@ -19,7 +19,7 @@
         ></v-progress-circular>
       </v-overlay>
 
-      <!-- Error State -->
+      
       <v-row v-if="error">
         <v-col cols="12" md="6" class="mx-auto">
           <v-alert
@@ -38,7 +38,7 @@
         </v-col>
       </v-row>
 
-      <!-- Order Details -->
+      
       <template v-if="orderDetails && !error">
         <v-row>
           <v-col cols="12" md="8" class="mx-auto">
@@ -55,7 +55,7 @@
               </v-card-title>
 
               <v-card-text>
-                <!-- Order Info -->
+                
                 <div class="mb-4">
                   <p >Date: {{ new Date(orderDetails.created_at).toLocaleString() }}</p>
                   <p>Email: {{ orderDetails.customer_email }}</p>
@@ -63,7 +63,7 @@
                   <p>Delivery Address:{{ orderDetails.delivery_address }}</p>
                 </div>
 
-                <!-- Order Items -->
+                
                 <v-list>
                   <v-list-subheader>Order Items</v-list-subheader>
                   <v-list-item
@@ -80,7 +80,7 @@
                   </v-list-item>
                 </v-list>
 
-                <!-- Total -->
+                
                 <v-divider class="my-4"></v-divider>
                 <div class="text-right">
                   <p class="text-h6">

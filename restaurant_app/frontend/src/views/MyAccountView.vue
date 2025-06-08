@@ -21,7 +21,7 @@
 
           <v-card-text>
             <v-form ref="form" @submit.prevent="handleSubmit" v-if="!isLoading">
-              <!-- Email Field (Read Only) -->
+              
               <v-text-field
                 v-model="userData.email"
                 label="Email"
@@ -29,14 +29,14 @@
                 readonly
               ></v-text-field>
 
-              <!-- Name Field (Read Only) -->
+              
               <v-text-field
                 v-model="userData.name"
                 label="Name"
                 clearable
               ></v-text-field>
 
-              <!-- Phone Number Field -->
+              
               <v-text-field
                 v-model="userData.phone_number"
                 label="Phone Number (optional)"
@@ -45,7 +45,7 @@
                 clearable
               ></v-text-field>
 
-              <!-- Delivery Address Field -->
+              
               <v-textarea
                 v-model="userData.delivery_address"
                 label="Delivery Address (optional)"
@@ -55,7 +55,7 @@
                 rows="3"
               ></v-textarea>
 
-              <!-- Alert Messages -->
+              
               <v-alert
                 v-if="error"
                 type="error"
@@ -72,7 +72,7 @@
                 Data updated successfully!
               </v-alert>
 
-              <!-- Action Buttons -->
+              
               <v-card-actions class="d-flex flex-column">
                 <v-btn
                   color="primary"
@@ -102,7 +102,7 @@
       </v-col>
     </v-row>
 
-    <!-- Delete Confirmation Dialog -->
+    
     <v-dialog v-model="showDeleteDialog" max-width="400">
       <v-card>
         <v-card-title class="text-h5">
@@ -135,7 +135,7 @@ const store = useStore()
 const router = useRouter()
 const form = ref(null)
 
-// Initialize userData with default empty values
+
 const userData = ref({
   email: '',
   name: '',
